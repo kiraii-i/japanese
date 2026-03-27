@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>story reader - kiraii</title>
+<style>
+:root {
+  --bg: #f7f7f7;
+  --card: #fff;
+  --text: #222;
+  --ruby: #555;
+}
+body.dark {
+  --bg: #121212;
+  --card: #1e1e1e;
+  --text: #eaeaea;
+  --ruby: #aaa;
+}
+body {
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+  padding: 40px 20px;
+  transition: 0.3s;
+}
+.container {
+  max-width: 720px;
+  margin: auto;
+  background: var(--card);
+  padding: 50px 60px;
+  border-radius: 12px;
+  box-shadow: 0 0 25px rgba(0,0,0,0.08);
+}
+h1, h2 { font-weight: normal; }
+h1 { text-align: center; margin-bottom: 30px; }
+h2 { margin-top: 40px; border-bottom: 1px solid #8883; padding-bottom: 10px; }
+p { line-height: 2.2; font-size: 18px; margin-bottom: 22px; text-align: justify; }
+ruby { ruby-position: over; }
+rt { font-size: 11px; color: var(--ruby); }
+.toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid #888;
+  padding: 8px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+}
+.upload { margin-bottom: 20px; }
+</style>
+</head>
+<body>
+
+<button class="toggle" onclick="toggleMode()">🌙</button>
+
+<div class="container">
+<h1>story reader</h1>
+
+<div class="upload">
+  <label>📂 upload the story（.txt）:</label>
+  <input type="file" id="storyFile" accept=".txt">
+</div>
+
+<section class="chapter">
+<h2>---</h2>
+<p>chapters will appear here</p>
+</section>
+
+</div>
+
+<script>
+if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+  document.body.classList.add('dark');
+}
+function toggleMode() {
+  document.body.classList.toggle('dark');
+}
+
+// =====================
+// FULL KANJI DICTIONARY (Example subset; for full ~13,000 kanji, you would include all readings here)
+// =====================
+const kanjiDict = {
+  "日":"ひ","人":"ひと","本":"ほん","学":"がく","生":"せい","行":"い",
+  "見":"み","聞":"き","話":"はなし","書":"か","読":"よ","食":"た",
+  "飲":"の","車":"しゃ","電":"でん","駅":"えき","店":"みせ","買":"か",
+  "物":"もの","金":"かね","入":"い","出":"で","先":"せん","大":"だい",
+  "小":"しょう","中":"なか","女":"おんな","男":"おとこ","子":"こ",
+  "今":"いま","知":"し","田":"た","中":"なか","山":"やま","川":"かわ"
+  // ... full dataset of 13,000+ kanji goes here
+};
+
+// Add furigana
+function addFurigana(text){
+  return text.replace(/[\u4e00-\u9faf]/g, kanji=>{
+    if(kanjiDict[kanji]){
+      return `<ruby>${kanji}<rt>${kanjiDict[kanji]}</rt></ruby>`;
+    }
+    return kanji;
+  });
+}
+
+// Handle file upload
+document.getElementById('storyFile').addEventListener('change', function(e){
+  const file = e.target.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(){
+    const lines = reader.result.split("\n");
+    const container = document.querySelector('.container');
+
+    const section = document.createElement('section');
+    section.className = "chapter";
+
+    const chapterCount = container.querySelectorAll('section.chapter').length + 1;
+    const h2 = document.createElement('h2');
+    h2.textContent = `第${chapterCount}章`;
+    section.appendChild(h2);
+
+    lines.forEach(line=>{
+      if(line.trim() !== ""){
+        const p = document.createElement('p');
+        p.innerHTML = addFurigana(line);
+        section.appendChild(p);
+      }
+    });
+
+    container.appendChild(section);
+    alert(`章${chapterCount}を追加しました！`);
+  };
+  reader.readAsText(file,"UTF-8");
+});
+</script>
+
+</body>
+</head>
